@@ -13,25 +13,24 @@ var casper = require('casper').create({
     height: 768
   }
 });
- 
-var url = "https://www.v2ex.com/signin";
+var username = casper.cli.options['u'];
+var password = casper.cli.options['p'];
+if(!username || !password)
+    casper.echo('请按照: casperjs v2ex.js --u=yourname --p=yourpassword 格式输入用户名密码！！！').exit();
  
 casper.start('https://www.v2ex.com/signin', function() {
-    fs.write('v2ex_sign.html', this.getHTML(), 'w'); 
+    this.echo('进入登录页');
 });
  
 casper.then(function() {
-    var username = casper.cli.options['u'];
-    var password = casper.cli.options['p'];
     this.fill('#Main form', {
         'u':    username,
         'p':    password 
     }, true);
-    this.echo(this.getHTML('#Main form input[type="submit"]', true));
-    this.click('#Main form input[type="submit"]');
 });
 
 casper.then(function() {
+    // TODO login success notice
     casper.waitForSelector('#Rightbar > div:nth-child(4) > div > a', function() {
         this.click('#Rightbar > div:nth-child(4) > div > a');
     }, function() {
