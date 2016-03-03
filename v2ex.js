@@ -16,32 +16,39 @@ var casper = require('casper').create({
  
 var url = "https://www.v2ex.com/signin";
  
-var echoCurrentPage = function() {
-  this.echo(colorizer.colorize("[Current Page]", "INFO") + this.getTitle() + " : " + this.getCurrentUrl());  
-};
- 
 casper.start('https://www.v2ex.com/signin', function() {
-    echoCurrentPage.call(this);
     fs.write('v2ex_sign.html', this.getHTML(), 'w'); 
 });
  
 casper.then(function() {
     var username = casper.cli.options['u'];
     var password = casper.cli.options['p'];
-    this.captureSelector('form.png', '#Main > div:nth-child(2) > div.cell > form');
-    this.fill('#Main > div:nth-child(2) > div.cell > form', {
+    this.fill('#Main form', {
         'u':    username,
         'p':    password 
     }, true);
-    this.click('#Main > div:nth-child(2) > div.cell > form > table > tbody > tr:nth-child(3) > td:nth-child(2) > input.super.normal.button');
-});
-
-casper.wait(5000, function() {
-    this.echo("waited for a second");
+    this.echo(this.getHTML('#Main form input[type="submit"]', true));
+    this.click('#Main form input[type="submit"]');
 });
 
 casper.then(function() {
-    echoCurrentPage.call(this);
-    this.debugHTML();
+    casper.waitForSelector('#Rightbar > div:nth-child(4) > div > a', function() {
+        this.click('#Rightbar > div:nth-child(4) > div > a');
+    }, function() {
+        this.echo('今天已经领取过登录奖励！！！').exit();
+    });
+});
+casper.then(function() {
+    casper.waitForSelector('#Main > div.box > div:nth-child(2) > input', function() {
+        this.click('#Main > div.box > div:nth-child(2) > input');
+    }, function() {
+        this.echo('今天已经领取过登录奖励！！！').exit();
+    });
+});
+
+casper.then(function() {
+    casper.wait(1000,function() {
+        this.echo('成功领取登录奖励！！！');
+    });
 });
 casper.run();
