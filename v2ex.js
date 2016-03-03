@@ -20,11 +20,28 @@ var echoCurrentPage = function() {
   this.echo(colorizer.colorize("[Current Page]", "INFO") + this.getTitle() + " : " + this.getCurrentUrl());  
 };
  
-casper.start();
- 
-casper.open(url).then(function(response) {
-  echoCurrentPage.call(this);
-  fs.write('v2ex_sign.html', this.getHTML(), 'w'); 
+casper.start('https://www.v2ex.com/signin', function() {
+    echoCurrentPage.call(this);
+    fs.write('v2ex_sign.html', this.getHTML(), 'w'); 
 });
  
+casper.then(function() {
+    var username = casper.cli.options['u'];
+    var password = casper.cli.options['p'];
+    this.captureSelector('form.png', '#Main > div:nth-child(2) > div.cell > form');
+    this.fill('#Main > div:nth-child(2) > div.cell > form', {
+        'u':    username,
+        'p':    password 
+    }, true);
+    this.click('#Main > div:nth-child(2) > div.cell > form > table > tbody > tr:nth-child(3) > td:nth-child(2) > input.super.normal.button');
+});
+
+casper.wait(5000, function() {
+    this.echo("waited for a second");
+});
+
+casper.then(function() {
+    echoCurrentPage.call(this);
+    this.debugHTML();
+});
 casper.run();
