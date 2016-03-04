@@ -1,5 +1,6 @@
 var colorizer = require('colorizer').create('Colorizer');
 var fs = require('fs');
+var x = require('casper').selectXPath;
 var casper = require('casper').create({
   verbose: true,
   logLevel: 'debug',
@@ -32,7 +33,7 @@ casper.then(function() {
 casper.then(function() {
     // TODO login success notice
     casper.waitForSelector('#Rightbar > div:nth-child(4) > div > a', function() {
-        this.click('#Rightbar > div:nth-child(4) > div > a');
+        this.clickLabel('领取今日的登录奖励', 'a');
     }, function() {
         this.echo('今天已经领取过登录奖励！！！').exit();
     });
