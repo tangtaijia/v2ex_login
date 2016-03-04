@@ -1,10 +1,12 @@
 var colorizer = require('colorizer').create('Colorizer');
+var fs = require('fs');
+var x = require('casper').selectXPath;
 var casper = require('casper').create({
   verbose: true,
   logLevel: 'debug',
   pageSettings: {
-    loadImages: true,
-    loadPlugins: true,
+    loadImages: false,
+    loadPlugins: false,
     userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36'
   },
   viewportSize: {
@@ -12,44 +14,41 @@ var casper = require('casper').create({
     height: 768
   }
 });
+var username = casper.cli.options['u'];
+var password = casper.cli.options['p'];
+if(!username || !password)
+    casper.echo('请按照: casperjs v2ex.js --u=yourname --p=yourpassword 格式输入用户名密码！！！').exit();
  
-var headers = {
-  method: 'get',
-  headers: {
-    'Accept-Language': 'zh-CN,zh;q=0.8,en;q=0.6',
-    ':host': 'www.v2ex.com',
-    ':method': 'GET',
-    ':path': '/signin',
-    ':scheme': 'https',
-    ':version': 'HTTP/1.1',
-    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-    'accept-encoding': 'gzip, deflate, sdch',
-    'referer': 'https://www.v2ex.com/signin',
-    'upgrade-insecure-requests': '1',
-    'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36'
-  }
-};
- 
-var url = "https://www.v2ex.com/signin";
- 
-var echoCurrentPage = function() {
-  this.echo(colorizer.colorize("[Current Page]", "INFO") + this.getTitle() + " : " + this.getCurrentUrl());  
-};
- 
-casper.on('resource.requested', function(request) {
-  this.echo(colorizer.colorize("SENDING REQUEST #" + request.id + " TO " + request.url, "PARAMETER"));
+casper.start('https://www.v2ex.com/signin', function() {
+    this.echo('进入登录页');
 });
  
-casper.start();
- 
-casper.open(url, headers).then(function(response) {
-  echoCurrentPage.call(this);
-  this.debugHTML();
+casper.then(function() {
+    this.fill('#Main form', {
+        'u':    username,
+        'p':    password 
+    }, true);
 });
- 
-casper.thenOpen(url).then(function(response) {
-  echoCurrentPage.call(this);
-  this.debugHTML();
+
+casper.then(function() {
+    // TODO login success notice
+    casper.waitForSelector('#Rightbar > div:nth-child(4) > div > a', function() {
+        this.clickLabel('领取今日的登录奖励', 'a');
+    }, function() {
+        this.echo('今天已经领取过登录奖励！！！').exit();
+    });
 });
- 
+casper.then(function() {
+    casper.waitForSelector('#Main > div.box > div:nth-child(2) > input', function() {
+        this.click('#Main > div.box > div:nth-child(2) > input');
+    }, function() {
+        this.echo('今天已经领取过登录奖励！！！').exit();
+    });
+});
+
+casper.then(function() {
+    casper.wait(1000,function() {
+        this.echo('成功领取登录奖励！！！');
+    });
+});
 casper.run();
